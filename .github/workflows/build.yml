@@ -1,0 +1,48 @@
+name: Build and Push Images
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ap-southeast-7
+  ECR_API_REPO: devops-microservice-demo-api
+  ECR_WEB_REPO: devops-microservice-demo-web
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push API image
+        run: |
+          docker buildx create --use --name ci-builder || true
+          docker buildx build \
+            --platform linux/amd64 \
+            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_API_REPO }}:latest \
+            ./api \
+            --push
+
+      - name: Build and push WEB image
+        run: |
+          docker buildx create --use --name ci-builder || true
+          docker buildx build \
+            --platform linux/amd64 \
+            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_WEB_REPO }}:latest \
+            ./web \
+            --push

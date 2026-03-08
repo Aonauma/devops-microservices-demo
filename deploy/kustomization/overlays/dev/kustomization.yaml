@@ -1,0 +1,15 @@
+namespace: demo
+
+resources:
+  - ../../base
+  - ingress.yaml
+  
+
+images:
+  - name: api
+    newName: 113892880964.dkr.ecr.ap-southeast-7.amazonaws.com/devops-microservice-demo-api
+    newTag: latest
+
+  - name: web
+    newName: 113892880964.dkr.ecr.ap-southeast-7.amazonaws.com/devops-microservice-demo-web
+    newTag: latest

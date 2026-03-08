@@ -1,0 +1,7 @@
+resources:
+  - api-deploy.yaml
+  - api-svc.yaml
+  - web-deploy.yaml
+  - web-svc.yaml
+  - configmap.yaml
+  - secret.yaml

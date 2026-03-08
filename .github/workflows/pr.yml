@@ -1,0 +1,53 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  api-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install API dependencies
+        working-directory: ./api
+        run: npm ci
+
+      - name: Run API tests
+        working-directory: ./api
+        run: npm test
+
+      - name: Build API Docker image
+        run: docker build -t api-pr-check ./api
+
+  web-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install WEB dependencies
+        working-directory: ./web
+        run: npm ci
+
+      - name: Build WEB app
+        working-directory: ./web
+        run: npm run build
+
+      - name: Build WEB Docker image
+        run: docker build -t web-pr-check ./web

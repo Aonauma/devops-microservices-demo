@@ -1,0 +1,10 @@
+# compiled output
+node_modules/
+npm-debug.log*
+.pnpm-debug.log*
+
+
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl

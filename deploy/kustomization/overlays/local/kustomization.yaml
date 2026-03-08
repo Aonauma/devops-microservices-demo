@@ -1,0 +1,13 @@
+namespace: demo
+
+resources:
+  - ../../base
+
+images:
+  - name: api
+    newName: api
+    newTag: local
+
+  - name: web
+    newName: web
+    newTag: local
