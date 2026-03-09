@@ -33,3 +33,9 @@ variable "max_size" {
 variable "desired_size" {
   default = 1
 }
+
+variable "enable_lb_controller" {
+  description = "Enable AWS Load Balancer Controller"
+  type        = bool
+  default     = false
+}
