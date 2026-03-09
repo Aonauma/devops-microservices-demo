@@ -4,4 +4,4 @@ metadata:
   name: app-config
 data:
   NODE_ENV: "production"
-  APP_VERSION: "local"
+  APP_VERSION: "V1"
