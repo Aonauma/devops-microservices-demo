@@ -39,3 +39,14 @@ variable "enable_lb_controller" {
   type        = bool
   default     = false
 }
+variable "enable_eks_access" {
+  description = "Enable EKS access entry creation"
+  type        = bool
+  default     = false
+}
+
+variable "eks_admin_principal_arn" {
+  description = "IAM principal ARN to grant EKS cluster admin"
+  type        = string
+  default     = "arn:aws:iam::113892880964:user/admin"
+}
