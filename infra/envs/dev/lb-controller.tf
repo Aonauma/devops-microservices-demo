@@ -1,11 +1,16 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_policy" "aws_load_balancer_controller" {
+  count = var.enable_lb_controller ? 1 : 0
+
   name        = "AWSLoadBalancerControllerIAMPolicy"
   description = "IAM policy for AWS Load Balancer Controller"
-
-  policy = file("${path.module}/iam_policy.json")
+  policy      = file("${path.module}/iam_policy.json")
 }
 
 data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role" {
+  count = var.enable_lb_controller ? 1 : 0
+
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
@@ -28,29 +33,39 @@ data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role" {
   }
 }
 
-data "aws_caller_identity" "current" {}
-
 resource "aws_iam_role" "aws_load_balancer_controller" {
+  count = var.enable_lb_controller ? 1 : 0
+
   name               = "AmazonEKSLoadBalancerControllerRole"
-  assume_role_policy = data.aws_iam_policy_document.aws_load_balancer_controller_assume_role.json
+  assume_role_policy = data.aws_iam_policy_document.aws_load_balancer_controller_assume_role[0].json
 }
 
 resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller" {
-  role       = aws_iam_role.aws_load_balancer_controller.name
-  policy_arn = aws_iam_policy.aws_load_balancer_controller.arn
+  count = var.enable_lb_controller ? 1 : 0
+
+  role       = aws_iam_role.aws_load_balancer_controller[0].name
+  policy_arn = aws_iam_policy.aws_load_balancer_controller[0].arn
 }
 
 resource "kubernetes_service_account" "aws_load_balancer_controller" {
+  count = var.enable_lb_controller ? 1 : 0
+
   metadata {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
     annotations = {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.aws_load_balancer_controller.arn
+      "eks.amazonaws.com/role-arn" = aws_iam_role.aws_load_balancer_controller[0].arn
     }
   }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.aws_load_balancer_controller
+  ]
 }
 
 resource "helm_release" "aws_load_balancer_controller" {
+  count = var.enable_lb_controller ? 1 : 0
+
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
@@ -68,7 +83,7 @@ resource "helm_release" "aws_load_balancer_controller" {
 
   set {
     name  = "serviceAccount.name"
-    value = kubernetes_service_account.aws_load_balancer_controller.metadata[0].name
+    value = kubernetes_service_account.aws_load_balancer_controller[0].metadata[0].name
   }
 
   set {

@@ -1,7 +1,10 @@
 name: Deploy to EKS
 
 on:
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build and Push Images"]
+    types:
+      - completed
 
 env:
   AWS_REGION: ap-southeast-7
@@ -9,6 +12,7 @@ env:
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
