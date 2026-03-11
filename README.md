@@ -391,6 +391,7 @@ helm repo update
 Install kube-prometheus-stack
 
 ```bash
+cd ../../../
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
 -n monitoring \
 -f deploy/monitoring/grafana-values.yaml
@@ -422,9 +423,54 @@ kubectl port-forward svc/monitoring-grafana -n monitoring 3000:80
 Open in browser
 
 ```
-http://localhost:3000 or 
-http://<grafana-loadbalancer-url>:80
+http://localhost:3000
 ```
+
+Dashboard: Kubernetes / Compute Resources / Namespace (Pods)
+
+<p align="center">
+<img width="1900" height="958" alt="image" src="https://github.com/user-attachments/assets/4d3eb2cb-6b3c-455d-888e-bc73e045d568" />
+</p>
+
+Dashboard: Kubernetes / Compute Resources / Pod
+
+<p align="center">
+<img width="1910" height="951" alt="image" src="https://github.com/user-attachments/assets/d997d22c-04d4-4315-bfa3-e8c477033b6a" />
+</p>
+
+Dashboard: Node Exporter / Nodes
+
+<p align="center">
+<img width="1907" height="957" alt="image" src="https://github.com/user-attachments/assets/5bf1c95b-a3af-4c90-b8c0-3f3090306545" />
+</p>
+
+**Alerting**
+
+Basic alerting is implemented using **Prometheus Alert Rules** provided by the `kube-prometheus-stack`.  
+These rules monitor workloads in the **`demo` namespace** and detect abnormal conditions such as container crashes, high CPU usage, and service readiness failures.
+
+**Access Prometheus**
+```
+kubectl port-forward svc/monitoring-kube-prometheus-prometheus 9090 -n monitoring
+```
+
+Open in browser
+```
+http://localhost:9090/alerts
+```
+
+Example
+**PodNotReady**
+
+Detects when a pod remains in a non-ready state and cannot serve traffic.
+
+PromQL rule
+
+kube_pod_status_ready{condition="true", namespace="demo"} == 0
+
+<p align="center">
+<img width="1905" height="837" alt="image" src="https://github.com/user-attachments/assets/c17a1a3b-3d68-4d95-95dc-f2f8d1bbbc13" />
+</p>
 
 12.8 Logging Setup
 
@@ -465,12 +511,20 @@ Verify Loki pods
 kubectl get pods -n monitoring
 ```
 
+Add Data source for Loki
+
+<p align="center">
+<img width="1419" height="842" alt="image" src="https://github.com/user-attachments/assets/e04fdf87-0865-49af-bf16-73464b373801" />
+</p>
+
 **Deploy Fluent Bit**
 
 Fluent Bit runs as a **DaemonSet** to collect logs from Kubernetes nodes.
 
 ```bash
-kubectl apply -f deploy/monitoring/fluent-bit.yaml
+helm upgrade --install fluent-bit fluent/fluent-bit \
+-n monitoring \
+-f deploy/monitoring/fluent-bit-values.yaml
 ```
 
 Verify Fluent Bit
@@ -502,6 +556,10 @@ Example query for API startup logs
 ```
 {kubernetes_namespace_name="demo", kubernetes_container_name="api"} |= "api_started"
 ```
+
+<p align="center">
+<img width="1658" height="861" alt="image" src="https://github.com/user-attachments/assets/acc69cc1-7b2a-441f-b38e-2a71864f476d" />
+</p>
 
 Example log entry
 

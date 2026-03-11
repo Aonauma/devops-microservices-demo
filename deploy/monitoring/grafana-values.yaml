@@ -31,3 +31,35 @@ kubeStateMetrics:
 
 nodeExporter:
   enabled: true
+
+additionalPrometheusRulesMap:
+  demo-alerts:
+    groups:
+      - name: demo-application-alerts
+        rules:
+          - alert: PodCrashLooping
+            expr: increase(kube_pod_container_status_restarts_total{namespace="demo"}[5m]) > 3
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Pod is restarting frequently"
+              description: "Container in pod {{ $labels.pod }} in namespace demo restarted more than 3 times in 5 minutes."
+          
+          - alert: HighPodCPUUsage
+            expr: sum(rate(container_cpu_usage_seconds_total{namespace="demo", container!="", image!=""}[5m])) by (pod, namespace) > 0.8
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High CPU usage detected"
+              description: "Pod {{ $labels.pod }} in namespace demo CPU usage is above threshold for more than 5 minutes."
+
+          - alert: PodNotReady
+            expr: kube_pod_status_ready{condition="true", namespace="demo"} == 0
+            for: 10s
+            labels:
+              severity: critical
+            annotations:
+              summary: "Pod is not ready"
+              description: "A pod in namespace demo is not ready."
